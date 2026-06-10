@@ -14,8 +14,11 @@ declare(strict_types=1);
 
 namespace Weline\Maintenance\Console\Maintenance;
 
+use Weline\Framework\Console\CommandInterface;
+
 use Weline\Framework\App\Env;
 use Weline\Framework\Output\Cli\Printing;
+use Weline\Maintenance\Helper\WlsMaintenanceSync;
 
 class Enable implements \Weline\Framework\Console\CommandInterface
 {
@@ -41,8 +44,9 @@ class Enable implements \Weline\Framework\Console\CommandInterface
      */
     public function execute(array $args = [], array $data = [])
     {
-        Env::getInstance()->setConfig('maintenance', true);
+        Env::getInstance()->setConfig('system.maintenance', true);
         $this->printing->success(__('维护模式已开启！'));
+        WlsMaintenanceSync::syncAfterCliToggle($this->printing, true, $args);
     }
 
     /**
@@ -51,5 +55,20 @@ class Enable implements \Weline\Framework\Console\CommandInterface
     public function tip(): string
     {
         return '开启维护模式';
+    }
+
+    public function help(): array|string
+    {
+        // 基于tip的默认help实现
+        return \Weline\Framework\Console\CommandHelper::formatHelp(
+            '',
+            $this->tip(),
+            [
+                '-h, --help' => '显示帮助信息',
+                '-n, --name' => __('指定 WLS 实例名；省略则向当前所有运行中的实例同步维护入口'),
+            ],
+            [],
+            []
+        );
     }
 }
